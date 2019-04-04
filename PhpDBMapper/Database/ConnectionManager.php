@@ -25,19 +25,29 @@ namespace PhpDBMapper\Database;
  */
 class ConnectionManager {
     
-    private $connections = array();
+    private static $connections = array();
     
-    public static function setConnection(string $dbName, \PDO $connection) {
-        if(array_key_exists($dbName, $this->connections)) {
+    public static function addConnection(string $dbName, \PDO $connection) {
+        if(array_key_exists($dbName, self::$connections)) {
             throw new \RuntimeException(sprintf("A conexão %s já existe", $dbName));
         }
         
-        $this->connections[$dbName] = $connection;
+        self::$connections[$dbName] = $connection;
     }
     
+    public static function removeConnection(string $dbName) {
+        if(array_key_exists($dbName, self::$connections)) {
+            unset(self::$connections[$dbName]);
+        }
+    }
+    
+    public static function getConnections() {
+        return self::$connections;
+    }
+
     public static function getConnection(string $dbName) {
-        if(array_key_exists($dbName, $this->connections)) {
-            return $this->connections[$dbName];
+        if(array_key_exists($dbName, self::$connections)) {
+            return self::$connections[$dbName];
         } else {
             throw new \RuntimeException(sprintf("A conexão %s ainda não foi aberta.", $dbName));
         }

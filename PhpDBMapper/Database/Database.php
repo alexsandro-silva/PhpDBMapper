@@ -31,6 +31,6 @@ class Database {
         $pdoConnection = new \PDO($dsn, $user, $password);
         $pdoConnection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         
-        ConnectionManager::setConnection($dbName, $pdoConnection);
+        ConnectionManager::addConnection($dbName, $pdoConnection);
     }
 }

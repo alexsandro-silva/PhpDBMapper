@@ -30,7 +30,7 @@ abstract class BaseModel {
     protected $attributes = array();
     protected $configuration = array();
     
-    function __construct($attributes) {
+    function __construct($attributes = null) {
         $this->attributes = $attributes;
     }
  
@@ -54,13 +54,13 @@ abstract class BaseModel {
         unset($this->attributes[$name]);
     }
     
-    public function getTableName($tableName) {
-        if(array_key_exists($tableName, $this->configuration)) {
-            return $this->configuration[$tableName];
+    public function getTableName() {
+        if(array_key_exists('table', $this->configuration)) {
+            return $this->configuration['table'];
         } else {
-            throw new \RuntimeException("O nome da tabela não definido");
+            throw new \RuntimeException("O nome da tabela não foi definido");
         }
     }
     
-    public abstract function config($configuration = array());
+    public abstract function config();
 }
