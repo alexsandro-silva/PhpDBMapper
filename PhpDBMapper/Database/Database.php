@@ -27,10 +27,12 @@ use PhpDBMapper\Database\ConnectionManager;
  */
 class Database {
 
-    public static function open($dbName, $dsn, $user, $password) {
-        $pdoConnection = new \PDO($dsn, $user, $password);
-        $pdoConnection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        
-        ConnectionManager::addConnection($dbName, $pdoConnection);
+    public static function open($dsn, $user, $password) {
+        $db = new DB();
+        $db->open(DB::DEFAULT, $dsn, $user, $password);
+    }
+    
+    public static function close(string $dbName = DB::DEFAULT) {
+        ConnectionManager::removeConnection($dbName);
     }
 }

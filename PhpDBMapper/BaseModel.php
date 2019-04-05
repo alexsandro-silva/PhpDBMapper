@@ -25,10 +25,13 @@ use PhpDBMapper\Exceptions\AttributeNotFoundException;
  *
  * @author alexsandro
  */
-abstract class BaseModel {
+class BaseModel {
     
     protected $attributes = array();
-    protected $configuration = array();
+    
+    static $db_name;
+    static $tableName;
+    static $keys;
     
     function __construct($attributes = null) {
         $this->attributes = $attributes;
@@ -54,13 +57,8 @@ abstract class BaseModel {
         unset($this->attributes[$name]);
     }
     
-    public function getTableName() {
-        if(array_key_exists('table', $this->configuration)) {
-            return $this->configuration['table'];
-        } else {
-            throw new \RuntimeException("O nome da tabela não foi definido");
-        }
+    public function get_table_name() {
+        return static::$tableName;
     }
     
-    public abstract function config();
 }
