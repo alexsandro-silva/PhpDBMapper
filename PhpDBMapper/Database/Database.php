@@ -18,8 +18,6 @@
 
 namespace PhpDBMapper\Database;
 
-use PhpDBMapper\Database\ConnectionManager;
-
 /**
  * Description of Database
  *
@@ -29,10 +27,15 @@ class Database {
 
     public static function open($dsn, $user, $password) {
         $db = new DB();
-        $db->open(DB::DEFAULT, $dsn, $user, $password);
+        $db->open(DB::_DEFAULT, $dsn, $user, $password);
     }
     
-    public static function close(string $dbName = DB::DEFAULT) {
+    public static function close($dbName = DB::_DEFAULT) {
         ConnectionManager::removeConnection($dbName);
+    }
+
+    public static function fetch($sql, $bindings = array()) {
+        $db = new DB();
+        return $db->fetch("teste", $sql, $bindings);
     }
 }

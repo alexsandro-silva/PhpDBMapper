@@ -25,7 +25,7 @@ namespace PhpDBMapper\Database;
  */
 class DB {
     
-    const DEFAULT = 'DEFAULT';
+    const _DEFAULT = 'DEFAULT';
     
     private $statement;
 
@@ -42,7 +42,7 @@ class DB {
 
     public function executeQuery($sql, $bindings = array()) {
         $this->statement = null;
-        $pdoInstance = ConnectionManager::getConnection(self::DEFAULT);
+        $pdoInstance = ConnectionManager::getConnection(self::_DEFAULT);
         if(count($bindings) > 0) {
             $this->statement = $pdoInstance->prepare($sql);
             $executed = $this->statement->execute($bindings);
@@ -61,6 +61,17 @@ class DB {
     
     public function execute($sql, array $bindings = array()) {
         return $this->executeQuery($sql, $bindings);
+    }
+
+    public function fetch($clazz, $sql, $bindings = array()) {
+        $result = array();
+        $statement = $this->executeQuery($sql, $bindings);
+        if ($statement) {
+            while($row = $statement->fetch(\PDO::FETCH_ASSOC)) {
+                $result = $row;
+            }
+        }
+        return $result;
     }
 
 }
