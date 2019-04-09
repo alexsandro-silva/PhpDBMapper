@@ -19,59 +19,28 @@
 namespace PhpDBMapper\Database;
 
 /**
- * Classe responsável pelas operações de banco de dados
+ * Description of Database
  *
  * @author alexsandro
  */
 class DB {
-    
-    const _DEFAULT = 'DEFAULT';
-    
-    private $statement;
 
-    public function open($db_name, $dsn, $user, $password) {
-        $connection = new \PDO($dsn, $user, $password);
-        $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
-        
-        ConnectionManager::addConnection($db_name, $connection);
+    public static function open($dsn, $user, $password) {
+        $db = new DatabaseAdapter();
+        $db->open(DatabaseAdapter::_DEFAULT, $dsn, $user, $password);
     }
     
-    public function close(string $dbName) {
+    public static function close($dbName = DatabaseAdapter::_DEFAULT) {
         ConnectionManager::removeConnection($dbName);
     }
 
-    public function executeQuery($sql, $bindings = array()) {
-        $this->statement = null;
-        $pdoInstance = ConnectionManager::getConnection(self::_DEFAULT);
-        if(count($bindings) > 0) {
-            $this->statement = $pdoInstance->prepare($sql);
-            $executed = $this->statement->execute($bindings);
-            if(! $executed) {
-                throw new \PDOException();
-            }
-        } else {
-            $this->statement = $pdoInstance->query($sql);
-            if($this->statement === false) {
-                throw new \PDOException();
-            }
-        }
-        
-        return $this->statement;
-    }
-    
-    public function execute($sql, array $bindings = array()) {
-        return $this->executeQuery($sql, $bindings);
+    public static function fetch($sql, $bindings = array()) {
+        $db = new DatabaseAdapter();
+        return $db->fetch("teste", $sql, $bindings);
     }
 
-    public function fetch($clazz, $sql, $bindings = array()) {
-        $result = array();
-        $statement = $this->executeQuery($sql, $bindings);
-        if ($statement) {
-            while($row = $statement->fetch(\PDO::FETCH_ASSOC)) {
-                $result = $row;
-            }
-        }
-        return $result;
+    public static function fetch_all($sql) {
+        $db = new DatabaseAdapter();
+        return $db->fetch_all($sql);
     }
-
 }

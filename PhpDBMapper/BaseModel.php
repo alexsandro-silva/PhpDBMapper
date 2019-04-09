@@ -18,7 +18,7 @@
 
 namespace PhpDBMapper;
 
-use PhpDBMapper\Database\Database;
+use PhpDBMapper\Database\DB;
 use PhpDBMapper\Exceptions\AttributeNotFoundException;
 
 /**
@@ -65,13 +65,29 @@ class BaseModel {
     public static function find($where, $whereValues) {
         $sql = "SELECT * FROM %s WHERE %s";
         $sql = sprintf($sql, static::$tableName, $where);
-        $result = Database::fetch($sql, $whereValues);
+        $result = DB::fetch($sql, $whereValues);
         $object = new self();
         foreach ($result as $key => $value) {
             $object->$key = $value;
         }
 
         return $object;
+    }
+
+    public static function find_all() {
+        $sql = "SELECT * FROM %s";
+        $sql = sprintf($sql, static::$tableName);
+        $result = DB::fetch_all($sql);
+        $objects = array();
+        for ($i = 0; $i < sizeof($result); $i++) {
+            $object = new self();
+            foreach ($result[$i] as $key => $value) {
+                $object->$key = $value;
+            }
+            array_push($objects, $object);
+        }
+
+        return $objects;
     }
     
 }
