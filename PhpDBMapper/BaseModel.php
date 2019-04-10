@@ -89,5 +89,23 @@ class BaseModel {
 
         return $objects;
     }
+
+    private function insert() {
+        $fields = array();
+        $values = array();
+        foreach ($this->attributes as $field => $value) {
+            $fields[] = $field;
+            array_push($values, '?');
+        }
+
+        $sql = sprintf("INSERT INTO %s (%s) VALUES (%s)", static::$tableName,
+            implode(', ', $fields), implode(', ', $values));
+
+        return $this->exe;
+    }
+
+    public function save(){
+        return $this->insert();
+    }
     
 }

@@ -36,7 +36,7 @@ class DB {
 
     public static function fetch($sql, $bindings = array()) {
         $db = new DatabaseAdapter();
-        return $db->fetch("teste", $sql, $bindings);
+        return $db->fetch($sql, $bindings);
     }
 
     public static function fetch_all($sql) {
