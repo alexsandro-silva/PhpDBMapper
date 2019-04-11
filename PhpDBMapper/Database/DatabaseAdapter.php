@@ -28,12 +28,29 @@ class DatabaseAdapter {
     const _DEFAULT = 'DEFAULT';
     
     private $statement;
+    private $dbName;
 
-    public function open($db_name, $dsn, $user, $password) {
+    /*
+     * Instancia da conexão
+     * @var \PDO
+     */
+    private $pdoInstance;
+
+    /**
+     * DatabaseAdapter constructor.
+     * @param $dbName
+     */
+    public function __construct($dbName = null)
+    {
+        $this->dbName = $dbName != null ? $dbName : self::_DEFAULT;
+    }
+
+
+    public function open($dsn, $user, $password) {
         $connection = new \PDO($dsn, $user, $password);
         $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
         
-        ConnectionManager::addConnection($db_name, $connection);
+        ConnectionManager::addConnection($this->dbName, $connection);
     }
     
     public function close(string $dbName) {
@@ -42,15 +59,15 @@ class DatabaseAdapter {
 
     public function executeQuery($sql, $bindings = array()) {
         $this->statement = null;
-        $pdoInstance = ConnectionManager::getConnection(self::_DEFAULT);
+        $this->pdoInstance = ConnectionManager::getConnection($this->dbName);
         if(count($bindings) > 0) {
-            $this->statement = $pdoInstance->prepare($sql);
+            $this->statement = $this->pdoInstance->prepare($sql);
             $executed = $this->statement->execute($bindings);
             if(! $executed) {
                 throw new \PDOException();
             }
         } else {
-            $this->statement = $pdoInstance->query($sql);
+            $this->statement = $this->pdoInstance->query($sql);
             if($this->statement === false) {
                 throw new \PDOException();
             }
@@ -59,9 +76,13 @@ class DatabaseAdapter {
         return $this->statement;
     }
     
-//    public function execute($sql, array $bindings = array()) {
-//        return $this->executeQuery($sql, $bindings);
-//    }
+    public function execute($sql, array $bindings = array()) {
+        return $this->executeQuery($sql, $bindings);
+    }
+
+    public function get_last_insert_id() {
+        return $this->pdoInstance->lastInsertId();
+    }
 
     public function fetch($sql, $bindings = array()) {
         $result = array();
