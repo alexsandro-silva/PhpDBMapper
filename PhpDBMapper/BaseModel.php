@@ -18,6 +18,7 @@
 
 namespace PhpDBMapper;
 
+use PhpDBMapper\Database\DatabaseAdapter;
 use PhpDBMapper\Database\DB;
 use PhpDBMapper\Exceptions\AttributeNotFoundException;
 
@@ -30,8 +31,9 @@ class BaseModel {
     
     protected $attributes = array();
     
-    static $db_name;
+    static $db_name = DatabaseAdapter::_DEFAULT;
     static $tableName;
+    static $primary_key = 'id';
     static $keys;
     
     function __construct($attributes = null) {
@@ -62,10 +64,14 @@ class BaseModel {
         return static::$tableName;
     }
 
+    private function getDatabaseAdapter() {
+        $database = new DatabaseAdapter(static::$db_name);
+        return $database;
+    }
+
     public static function find($where, $whereValues) {
-        $sql = "SELECT * FROM %s WHERE %s";
-        $sql = sprintf($sql, static::$tableName, $where);
-        $result = DB::fetch($sql, $whereValues);
+        $sql = sprintf("SELECT * FROM %s WHERE %s", static::$tableName, $where);
+        $result = self::getDatabaseAdapter()->fetch($sql, $whereValues);
         $object = new self();
         foreach ($result as $key => $value) {
             $object->$key = $value;
@@ -101,7 +107,14 @@ class BaseModel {
         $sql = sprintf("INSERT INTO %s (%s) VALUES (%s)", static::$tableName,
             implode(', ', $fields), implode(', ', $values));
 
-        return $this->exe;
+        $db = $this->getDatabaseAdapter();
+        $db->execute($sql, array_values($this->attributes));
+        $lastId = $db->get_last_insert_id();
+        if ($lastId) {
+            $this->attributes[static::$primary_key] = $lastId;
+        }
+
+        return $this;
     }
 
     public function save(){
