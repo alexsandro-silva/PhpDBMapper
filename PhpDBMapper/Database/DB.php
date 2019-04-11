@@ -27,7 +27,7 @@ class DB {
 
     public static function open($dsn, $user, $password) {
         $db = new DatabaseAdapter();
-        $db->open(DatabaseAdapter::_DEFAULT, $dsn, $user, $password);
+        $db->open($dsn, $user, $password);
     }
     
     public static function close($dbName = DatabaseAdapter::_DEFAULT) {
