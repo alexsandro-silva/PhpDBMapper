@@ -21,6 +21,7 @@ namespace PhpDBMapper;
 use PhpDBMapper\Database\DatabaseAdapter;
 use PhpDBMapper\Database\DB;
 use PhpDBMapper\Exceptions\AttributeNotFoundException;
+use ReflectionClass;
 
 /**
  * Description of BaseModel
@@ -28,19 +29,28 @@ use PhpDBMapper\Exceptions\AttributeNotFoundException;
  * @author alexsandro
  */
 class BaseModel {
-    
-    protected $attributes = array();
-    
+
     static $db_name = DatabaseAdapter::_DEFAULT;
     static $tableName;
     static $primary_key = 'id';
     static $keys;
+
+    protected $attributes = array();
+    protected $dirty = array();
     
     function __construct($attributes = null) {
         $this->attributes = $attributes;
     }
  
     public function __set($name, $value) {
+        if (isset($this->attributes) && sizeof($this->attributes) > 0) {
+            if (array_key_exists($name, $this->attributes)) {
+                if ($this->attributes[$name] != $value) {
+                    $this->__setDirty($name, $value);
+                }
+            }
+        }
+
         $this->attributes[$name] = $value;
     }
     
@@ -58,6 +68,17 @@ class BaseModel {
     
     public function __unset($name) {
         unset($this->attributes[$name]);
+    }
+
+    private function __setDirty($name, $value) {
+        $this->dirty[$name] = $value;
+    }
+
+    //todo porque não funciona?
+    private function __get_table() {
+        $clazz = new ReflectionClass(get_called_class());
+        $table = $clazz->getStaticPropertyValue('tableName');
+        return $table;
     }
     
     public function get_table_name() {
@@ -117,8 +138,30 @@ class BaseModel {
         return $this;
     }
 
+    private function update() {
+        $fields = array();
+        $values = array();
+        if (sizeof($this->dirty) > 0) {
+            foreach ($this->dirty as $field => $value) {
+                //$fields = $field;
+                array_push($fields, $field . ' = ?');
+            }
+
+            $sql = sprintf("UPDATE %s SET %s", $this->__get_table(), implode(', ', $fields));
+            $sql .= sprintf(" WHERE %s = %s", static::$primary_key, $this->attributes[static::$primary_key]);
+
+            return $sql;
+            //$db = $this->getDatabaseAdapter();
+            //$db->execute($sql, array_values($this->dirty));
+        }
+    }
+
     public function save(){
-        return $this->insert();
+        if (array_key_exists(static::$primary_key, $this->attributes)) {
+            return $this->update();
+        } else {
+            return $this->insert();
+        }
     }
     
 }
