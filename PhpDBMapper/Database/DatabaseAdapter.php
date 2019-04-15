@@ -18,6 +18,8 @@
 
 namespace PhpDBMapper\Database;
 
+use PDO;
+
 /**
  * Classe responsável pelas operações de banco de dados
  *
@@ -46,9 +48,13 @@ class DatabaseAdapter {
     }
 
 
-    public function open($dsn, $user, $password) {
-        $connection = new \PDO($dsn, $user, $password);
-        $connection->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+    public function open($dsn, $user = null, $password = null, $options = []) {
+        $default_options = [
+            PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC,
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
+        ];
+        $options = array_replace($default_options, $options);
+        $connection = new \PDO($dsn, $user, $password, $options);
         
         ConnectionManager::addConnection($this->dbName, $connection);
     }

@@ -74,7 +74,6 @@ class BaseModel {
         $this->dirty[$name] = $value;
     }
 
-    //todo porque não funciona?
     private function __get_table() {
         $clazz = new ReflectionClass(get_called_class());
         $table = $clazz->getStaticPropertyValue('tableName');
@@ -93,7 +92,8 @@ class BaseModel {
     public static function find($where, $whereValues) {
         $sql = sprintf("SELECT * FROM %s WHERE %s", static::$tableName, $where);
         $result = self::getDatabaseAdapter()->fetch($sql, $whereValues);
-        $object = new self();
+        $class = get_called_class();
+        $object = new $class();
         foreach ($result as $key => $value) {
             $object->$key = $value;
         }
@@ -104,7 +104,7 @@ class BaseModel {
     public static function find_all() {
         $sql = "SELECT * FROM %s";
         $sql = sprintf($sql, static::$tableName);
-        $result = DB::fetch_all($sql);
+        $result = self::getDatabaseAdapter()->fetch_all($sql);
         $objects = array();
         for ($i = 0; $i < sizeof($result); $i++) {
             $object = new self();
@@ -140,20 +140,23 @@ class BaseModel {
 
     private function update() {
         $fields = array();
-        $values = array();
         if (sizeof($this->dirty) > 0) {
             foreach ($this->dirty as $field => $value) {
-                //$fields = $field;
                 array_push($fields, $field . ' = ?');
             }
 
             $sql = sprintf("UPDATE %s SET %s", $this->__get_table(), implode(', ', $fields));
             $sql .= sprintf(" WHERE %s = %s", static::$primary_key, $this->attributes[static::$primary_key]);
 
-            return $sql;
-            //$db = $this->getDatabaseAdapter();
-            //$db->execute($sql, array_values($this->dirty));
+            $db = $this->getDatabaseAdapter();
+            return $db->execute($sql, array_values($this->dirty));
         }
+    }
+
+    public function delete() {
+        $sql = sprintf("DELETE FROM %s WHERE %s = ?", static::$tableName, static::$primary_key);
+        $statement = $this->getDatabaseAdapter()->execute($sql, [$this->attributes[static::$primary_key]]);
+        return $statement->rowCount() > 0 ? true : false;
     }
 
     public function save(){
