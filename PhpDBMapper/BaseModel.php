@@ -45,9 +45,7 @@ class BaseModel {
     public function __set($name, $value) {
         if (isset($this->attributes) && sizeof($this->attributes) > 0) {
             if (array_key_exists($name, $this->attributes)) {
-                if ($this->attributes[$name] != $value) {
-                    $this->__setDirty($name, $value);
-                }
+                $this->__setDirty($name, $value);
             }
         }
 
@@ -71,7 +69,9 @@ class BaseModel {
     }
 
     private function __setDirty($name, $value) {
-        $this->dirty[$name] = $value;
+        if ($this->attributes[$name] != $value) {
+            $this->dirty[$name] = $value;
+        }
     }
 
     private function __get_table() {
@@ -102,8 +102,7 @@ class BaseModel {
     }
 
     public static function find_all() {
-        $sql = "SELECT * FROM %s";
-        $sql = sprintf($sql, static::$tableName);
+        $sql = sprintf("SELECT * FROM %s", static::$tableName);
         $result = self::getDatabaseAdapter()->fetch_all($sql);
         $objects = array();
         for ($i = 0; $i < sizeof($result); $i++) {
